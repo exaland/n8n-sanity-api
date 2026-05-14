@@ -1,17 +1,17 @@
 {
-    "name": "n8n-nodes-sanity-mutation",
-    "version": "0.1.5",
-    "description": "n8n nodes for Sanity.io mutations",
-    "keywords": ["n8n-community-node-package", "sanity", "cms", "mutation", "transform"],
+    "name": "n8n-nodes-sanity-api",
+    "version": "0.1.1",
+    "description": "n8n nodes for Sanity.io API",
+    "keywords": ["n8n-community-node-package", "sanity", "cms", "api", "transform"],
     "license": "MIT",
-    "homepage": "realthreads.io",
+    "homepage": "https://exaland.app",
     "author": {
-        "name": "David",
-        "email": "david@realthreads.io"
+        "name": "Alexandre Magnier",
+        "email": "exaland@gmail.com"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/realthreads/n8n-sanity-mutations.git"
+        "url": "https://github.com/exaland/n8n-sanity-api.git"
     },
     "engines": {
         "node": ">=20.15"

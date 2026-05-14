@@ -45,8 +45,8 @@ class SanityMutationApi {
                     query: `*[_type == "sanity.project" && _id == "sane-project-name"]`,
                 },
                 headers: {
-                    'Accept': 'application/json',
-                    'Authorization': '=Bearer {{$credentials.token}}',
+                    Accept: 'application/json',
+                    Authorization: '=Bearer {{$credentials.token}}',
                 },
             },
         };

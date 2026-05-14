@@ -5,7 +5,6 @@ import {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-	NodeConnectionType,
 	NodeOperationError,
 } from 'n8n-workflow';
 import set from 'lodash/set';
@@ -99,8 +98,8 @@ export class SanitySchemaMapper implements INodeType {
 		defaults: {
 			name: 'Sanity Mapper',
 		},
-		inputs: [{ type: NodeConnectionType.Main, displayName: 'Input' }],
-		outputs: [{ type: NodeConnectionType.Main, displayName: 'Output' }],
+		inputs: [{ type: 'main', displayName: 'Input' }],
+		outputs: [{ type: 'main', displayName: 'Output' }],
 		properties: [
 			{
 				displayName: 'Sanity Document Schema',

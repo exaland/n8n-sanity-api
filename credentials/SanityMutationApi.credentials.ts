@@ -1,8 +1,4 @@
-import {
-	ICredentialType,
-	INodeProperties,
-	ICredentialTestRequest,
-} from 'n8n-workflow';
+import { ICredentialType, INodeProperties, ICredentialTestRequest } from 'n8n-workflow';
 
 /**
  * This is the credentials file for the Sanity API.
@@ -58,8 +54,8 @@ export class SanityMutationApi implements ICredentialType {
 				query: `*[_type == "sanity.project" && _id == "sane-project-name"]`,
 			},
 			headers: {
-				'Accept': 'application/json',
-				'Authorization': '=Bearer {{$credentials.token}}',
+				Accept: 'application/json',
+				Authorization: '=Bearer {{$credentials.token}}',
 			},
 		},
 	};

@@ -22,7 +22,7 @@ export class SanityMutation implements INodeType {
 		group: ['output'],
 		version: 1,
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Create, Update, and Delete documents in Sanity.io',
+		description: 'Create, Read, Update, and Delete documents in Sanity.io',
 		defaults: {
 			name: 'Sanity',
 		},
@@ -70,6 +70,11 @@ export class SanityMutation implements INodeType {
 						action: 'Delete a document',
 					},
 					{
+						name: 'Get Documents',
+						value: 'get',
+						action: 'Get documents',
+					},
+					{
 						name: 'Patch (Update)',
 						value: 'patch',
 						action: 'Patch partially update a document',
@@ -84,10 +89,117 @@ export class SanityMutation implements INodeType {
 				default: '',
 				placeholder: 'doc-ID-12345',
 				description:
-					'The ID of the document to operate on. If creating and left blank, a random ID will be generated.',
+					'The ID of the document to operate on. If creating and left blank, a random ID will be generated. For Get Documents, this is optional when using a custom GROQ query.',
 				displayOptions: {
 					show: {
 						operation: ['create', 'createOrReplace', 'createIfNotExists', 'delete', 'patch'],
+					},
+				},
+			},
+			{
+				displayName: 'Get Mode',
+				name: 'getMode',
+				type: 'options',
+				options: [
+					{
+						name: 'Auto (Query Then ID)',
+						value: 'auto',
+						description: 'Use GROQ query if provided, otherwise fetch by Document ID',
+					},
+					{
+						name: 'By Document ID',
+						value: 'byId',
+						description: 'Fetch a single document by ID',
+					},
+					{
+						name: 'By GROQ Query',
+						value: 'byQuery',
+						description: 'Fetch documents using a custom GROQ query',
+					},
+					{
+						name: 'By Document Type',
+						value: 'byType',
+						description: 'Fetch documents by _type with pagination',
+					},
+				],
+				default: 'auto',
+				displayOptions: {
+					show: {
+						operation: ['get'],
+					},
+				},
+			},
+			{
+				displayName: 'Document ID',
+				name: 'documentId',
+				type: 'string',
+				default: '',
+				placeholder: 'doc-ID-12345',
+				description: 'The ID of the document to fetch',
+				displayOptions: {
+					show: {
+						operation: ['get'],
+						getMode: ['auto', 'byId'],
+					},
+				},
+			},
+			{
+				displayName: 'GROQ Query',
+				name: 'query',
+				type: 'string',
+				default: '',
+				placeholder: '*[_type == "post"][0...10]',
+				description: 'Optional GROQ query. If empty, the node fetches one document by Document ID.',
+				displayOptions: {
+					show: {
+						operation: ['get'],
+						getMode: ['auto', 'byQuery'],
+					},
+				},
+			},
+			{
+				displayName: 'Document Type',
+				name: 'documentType',
+				type: 'string',
+				default: '',
+				placeholder: 'post',
+				description: 'The Sanity _type value to fetch',
+				displayOptions: {
+					show: {
+						operation: ['get'],
+						getMode: ['byType'],
+					},
+				},
+			},
+			{
+				displayName: 'Limit',
+				name: 'limit',
+				type: 'number',
+				typeOptions: {
+					minValue: 1,
+				},
+				default: 10,
+				description: 'Maximum number of documents to return',
+				displayOptions: {
+					show: {
+						operation: ['get'],
+						getMode: ['byType'],
+					},
+				},
+			},
+			{
+				displayName: 'Offset',
+				name: 'offset',
+				type: 'number',
+				typeOptions: {
+					minValue: 0,
+				},
+				default: 0,
+				description: 'Number of matching documents to skip before returning results',
+				displayOptions: {
+					show: {
+						operation: ['get'],
+						getMode: ['byType'],
 					},
 				},
 			},
@@ -119,7 +231,12 @@ export class SanityMutation implements INodeType {
 						name: 'returnDocuments',
 						type: 'boolean',
 						default: true,
-						description: 'Whether to return the full document(s) in the response',
+						description: 'Whether to return the full document(s) in mutation responses',
+						displayOptions: {
+							show: {
+								'/operation': ['create', 'createIfNotExists', 'createOrReplace', 'delete', 'patch'],
+							},
+						},
 					},
 					{
 						displayName: 'API Version',
@@ -152,6 +269,107 @@ export class SanityMutation implements INodeType {
 			try {
 				const operation = this.getNodeParameter('operation', itemIndex, '') as string;
 				const documentId = this.getNodeParameter('documentId', itemIndex, '') as string;
+				const query = this.getNodeParameter('query', itemIndex, '') as string;
+				const getMode = this.getNodeParameter('getMode', itemIndex, 'auto') as string;
+				const documentType = this.getNodeParameter('documentType', itemIndex, '') as string;
+				const limit = this.getNodeParameter('limit', itemIndex, 10) as number;
+				const offset = this.getNodeParameter('offset', itemIndex, 0) as number;
+
+				const options = this.getNodeParameter('options', itemIndex, {}) as {
+					returnDocuments?: boolean;
+					apiVersion?: string;
+				};
+
+				const apiVersion = options.apiVersion || 'v2024-06-21';
+
+				const encodeGroqParam = (value: string | number | boolean): string => JSON.stringify(value);
+
+				if (operation === 'get') {
+					let resolvedQuery = '';
+					let queryParams: IDataObject = {};
+
+					if (getMode === 'auto') {
+						if (query) {
+							resolvedQuery = query;
+						} else if (documentId) {
+							resolvedQuery = '*[_id == $id][0]';
+							queryParams = { $id: encodeGroqParam(documentId) };
+						} else {
+							throw new NodeOperationError(
+								this.getNode(),
+								'In auto mode, provide either Document ID or GROQ Query.',
+								{ itemIndex },
+							);
+						}
+					} else if (getMode === 'byId') {
+						if (!documentId) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Document ID is required when Get Mode is "By Document ID".',
+								{ itemIndex },
+							);
+						}
+						resolvedQuery = '*[_id == $id][0]';
+						queryParams = { $id: encodeGroqParam(documentId) };
+					} else if (getMode === 'byQuery') {
+						if (!query) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'GROQ Query is required when Get Mode is "By GROQ Query".',
+								{ itemIndex },
+							);
+						}
+						resolvedQuery = query;
+					} else if (getMode === 'byType') {
+						if (!documentType) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Document Type is required when Get Mode is "By Document Type".',
+								{ itemIndex },
+							);
+						}
+						const pageSize = Math.max(1, Math.floor(limit));
+						const start = Math.max(0, Math.floor(offset));
+						resolvedQuery = '*[_type == $type][$offset...$end]';
+						queryParams = {
+							$type: encodeGroqParam(documentType),
+							$offset: encodeGroqParam(start),
+							$end: encodeGroqParam(start + pageSize),
+						};
+					} else {
+						throw new NodeOperationError(this.getNode(), `Unsupported Get Mode: ${getMode}`, {
+							itemIndex,
+						});
+					}
+
+					const queryUrl = `https://${projectId}.api.sanity.io/${apiVersion}/data/query/${dataset}`;
+					const queryResponse = (await this.helpers.httpRequest({
+						method: 'GET',
+						url: queryUrl,
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+						qs: {
+							query: resolvedQuery,
+							...queryParams,
+						},
+						json: true,
+					})) as IDataObject;
+
+					const queryResult = queryResponse.result as IDataObject | IDataObject[] | null;
+					const normalizedResult = Array.isArray(queryResult)
+						? queryResult
+						: queryResult
+							? [queryResult]
+							: [];
+
+					const executionData = this.helpers.constructExecutionMetaData(
+						this.helpers.returnJsonArray(normalizedResult),
+						{ itemData: { item: itemIndex } },
+					);
+					returnData.push(...executionData);
+					continue;
+				}
 
 				const documentJsonString = this.getNodeParameter('documentJson', itemIndex, '{}') as string;
 				let documentJson: IDataObject;
@@ -165,12 +383,6 @@ export class SanityMutation implements INodeType {
 					);
 				}
 
-				const options = this.getNodeParameter('options', itemIndex, {}) as {
-					returnDocuments?: boolean;
-					apiVersion?: string;
-				};
-
-				const apiVersion = options.apiVersion || 'v2024-06-21';
 				const url = `https://${projectId}.api.sanity.io/${apiVersion}/data/mutate/${dataset}`;
 
 				const mutations: IDataObject[] = [];

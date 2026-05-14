@@ -69,8 +69,8 @@ class SanitySchemaMapper {
             defaults: {
                 name: 'Sanity Mapper',
             },
-            inputs: [{ type: "main", displayName: 'Input' }],
-            outputs: [{ type: "main", displayName: 'Output' }],
+            inputs: [{ type: 'main', displayName: 'Input' }],
+            outputs: [{ type: 'main', displayName: 'Output' }],
             properties: [
                 {
                     displayName: 'Sanity Document Schema',

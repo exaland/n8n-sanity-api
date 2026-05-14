@@ -1,4 +1,4 @@
-# n8n-nodes-sanity-mutation
+# n8n-nodes-sanity-api
 
 This is an n8n community node. It lets you use [Sanity CMS](https://www.sanity.io/) in your n8n workflows.
 
@@ -21,7 +21,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 ## Operations
 
 1. `SanitySchemaMapper` node: Takes a Sanity schema and input data, then transforms it into a valid Sanity document.
-2. `SanityMutation` node: Create, Update, and Delete documents in Sanity.io
+2. `SanityMutation` node: Create, Read, Update, and Delete documents in Sanity.io (including get by ID, GROQ, or type with limit/offset)
 
 ## Credentials
 
@@ -29,24 +29,15 @@ A [Sanity API Token](https://www.sanity.io/docs/content-lake/http-auth) is requi
 
 ## Compatibility
 
-Tested with n8n Version: 1.99.1
-
-## Usage
-
-Usage guidance available at: https://realthreads.io/projects/n8n-sanity-nodes
-
+Tested with n8n Version: 2.17.5
 
 ## Resources
 
-* [GitHub Repo](https://github.com/realthreads/n8n-sanity-mutations)
+* [GitHub Repo](https://github.com/exaland/n8n-sanity-api)
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
 * [Sanity Docs](https://www.sanity.io/docs)
 
 
 ## Version history
 
-* Version 0.1.6: Add credential test.
-
-* Version 0.1.5: Initial working release with two nodes to: transform data into valid Sanity documents; create, edit and delete Sanity documents.
-
-* Version 0.1.0: Initial release with two nodes to: transform data into valid Sanity documents; create, edit and delete Sanity documents.
+* Version 0.1.0 - Initial release with SanitySchemaMapper node

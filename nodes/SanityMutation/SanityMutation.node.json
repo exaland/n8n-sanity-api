@@ -2,7 +2,7 @@
 	"node": "SanityMutation.node",
 	"node_name": "SanityMutation",
 	"display_name": "Sanity Mutation",
-	"description": "Create, Update, and Delete documents in Sanity.io",
+	"description": "Create, Read, Update, and Delete documents in Sanity.io",
 	"author": "Real Threads",
 	"methods": ["POST"],
 	"url": "https://www.sanity.io/docs/http-api",
