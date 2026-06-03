@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-sanity-api",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "n8n nodes for Sanity.io API",
   "keywords": ["n8n-community-node-package", "sanity", "cms", "api", "transform"  ],
   "license": "MIT",
